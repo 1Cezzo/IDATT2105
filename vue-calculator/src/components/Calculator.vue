@@ -41,6 +41,7 @@
 
 <script>
 import * as math from 'mathjs'
+import { calculateResult, calculateResultJSON } from '../api/CalculatorHooks';
 
 export default {
   data() {
@@ -61,7 +62,7 @@ export default {
         this.expression = ''
       }
     },
-    handleButtonClick(value) {
+    async handleButtonClick(value) {
       if (value === 'C') {
         this.expression = ''
         return
@@ -74,12 +75,10 @@ export default {
         if (this.answers.length === 0) {
           return
         } else {
-          // Extract the result from the last answer
           const lastAnswer = this.answers[this.answers.length - 1]
           const resultIndex = lastAnswer.lastIndexOf('=') + 1
           const result = lastAnswer.slice(resultIndex).trim()
 
-          // Append the result to the current expression
           this.expression += result
 
           return
@@ -94,16 +93,19 @@ export default {
             this.expression = 'undefined'
             pushAnswer()
           } else {
-            const result = math.evaluate(this.expression).toString()
-            this.expression = this.expression + ' = ' + result
-            this.pushAnswer()
+          const result = await calculateResult(this.expression);
+          console.log('Result:', result);
+          const resultJSON = await calculateResultJSON(this.expression);
+          console.log('Result JSON:', resultJSON);
+          this.expression = this.expression + ' = ' + result;
+          this.pushAnswer();
           }
         } catch (error) {
-          this.expression = 'undefined'
-          this.answers.push(this.expression)
-          this.expression = ''
-        }
-      } else {
+          console.error('Error calculating result:', error);
+          this.expression = 'undefined';
+          this.pushAnswer();
+          this.expression = '';
+        }} else {
         this.expression += value
       }
     },
@@ -112,7 +114,7 @@ export default {
       console.log(key)
 
       if (key === 'Backspace') {
-        event.preventDefault() // Prevent the default behavior of the key event
+        event.preventDefault()
         this.handleButtonClick('DEL')
       }
 
