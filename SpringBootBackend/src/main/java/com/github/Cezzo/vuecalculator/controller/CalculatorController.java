@@ -11,11 +11,9 @@ public class CalculatorController {
 
     @PostMapping("/calculate")
     public String calculate(@RequestBody String equation) {
-        Expression expression = new ExpressionBuilder(equation)
-                .build();
-        if (expression.toString().contains("/0")) {
-            return "undefined";
-        }
-        return "Result: " + expression.evaluate();
+      System.out.println(equation);
+      Expression expression = new ExpressionBuilder(equation)
+              .build();
+      return "" + expression.evaluate();
     }
 }
