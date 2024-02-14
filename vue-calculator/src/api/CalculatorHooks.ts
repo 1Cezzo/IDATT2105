@@ -8,7 +8,7 @@ const api = axios.create({
 });
 
 export const calculateResult = (equation: any) => {
-  return api.post('/calculate', equation)
+  return api.post('/api/calculate', equation)
     .then(response => {
       return response.data;
     })
@@ -18,7 +18,7 @@ export const calculateResult = (equation: any) => {
 };
 
 export const calculateResultJSON = (equation: any) => {
-  return api.post('/calculateJSON', equation)
+  return api.post('/api/calculateJSON', equation)
     .then(response => {
       return response.data;
     })
