@@ -1,0 +1,5 @@
+com\github\Cezzo\vuecalculator\controller\CalculatorController.class
+com\github\Cezzo\vuecalculator\model\CalculationResult.class
+com\github\Cezzo\vuecalculator\config\CorsConfig.class
+com\github\Cezzo\vuecalculator\VueCalculatorApplication.class
+main\java\com\github\Cezzo\vuecalculator\service\CalculationService.class
