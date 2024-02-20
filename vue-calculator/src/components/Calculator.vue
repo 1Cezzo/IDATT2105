@@ -41,7 +41,7 @@
 
 <script>
 import * as math from 'mathjs'
-import { calculateResult, calculateResultJSON } from '../api/CalculatorHooks';
+import { calculateResult, calculateResultJSON, createEntity } from '../api/CalculatorHooks';
 
 export default {
   data() {
@@ -93,6 +93,16 @@ export default {
             this.expression = 'undefined'
             pushAnswer()
           } else {
+          try {
+            const newEntityData = {
+              name: 'Example Name',
+              description: 'Example Description'
+            };
+            const createdEntity = await createEntity(newEntityData);
+            console.log('Created entity:', createdEntity);
+          } catch (error) {
+            console.error('Error creating entity:', error);
+          }
           const result = await calculateResult(this.expression);
           console.log('Result:', result);
           const resultJSON = await calculateResultJSON(this.expression);
