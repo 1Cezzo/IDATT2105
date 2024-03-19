@@ -28,9 +28,8 @@
         <div class="current-expression">
           <input type="text" v-model="expression" readonly />
         </div>
-        <div v-for="(calculationResult, index) in calculationResults" :key="index" class="previous-answer">
+        <div v-for="(calculationResult, index) in calculationResults" :key="index" class="previous-answer" @click="setExpression(calculationResult.expression, calculationResult.answer)">
         {{ calculationResult.expression }} = {{ calculationResult.answer }}
-        <div class="answer-line"></div>
       </div>
     </div>
     <div id="pagination-buttons">
@@ -72,6 +71,10 @@ export default {
     }
   },
   methods: {
+    setExpression(expression, answer) {
+      this.expression = expression + " = " + answer;
+    },
+
     logout() {
       localStorage.removeItem('username');
       this.$router.push({ path: '/' });
@@ -273,12 +276,16 @@ export default {
 
 .previous-answer {
   margin-top: 10px;
+  cursor: pointer;
+  border: 2px solid #000;
+  padding: 10px;
+  border-radius: 5px;
+  background-color: rgba(179, 179, 179, 0.25); /* RGBA color format with opacity set to 0.5 */
+  font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
 }
 
-.answer-line {
-  height: 1px;
-  background-color: #000;
-  margin: 5px 0;
+.previous-answer:hover {
+  background-color: rgba(204, 204, 204, 0.75); /* RGBA color format with opacity set to 0.5 */
 }
 
 #feedback-button {
