@@ -1,4 +1,5 @@
 <template>
+  <button class="logout-button" @click="logout">Logout</button>
   <div class="calculator-container" @keydown="handleKeyPress" tabindex="0">
     <div id="calculator" class="grid">
       <div class="grid-square" @click="handleButtonClick('7')">7</div>
@@ -24,45 +25,114 @@
     </div>
 
     <div id="output-area" class="output-area">
-      <div class="current-expression">
-        <input type="text" v-model="expression" readonly />
-      </div>
-
-      <div v-for="(answer, index) in reversedAnswers" :key="index" class="previous-answer">
-        {{ answer }}
+        <div class="current-expression">
+          <input type="text" v-model="expression" readonly />
+        </div>
+        <div v-for="(calculationResult, index) in calculationResults" :key="index" class="previous-answer">
+        {{ calculationResult.expression }} = {{ calculationResult.answer }}
         <div class="answer-line"></div>
       </div>
+    </div>
+    <div id="pagination-buttons">
+      <button @click="prevPage" :disabled="currentPage === 0">Previous</button>
+      <button @click="nextPage" :disabled="currentPage === totalPages - 1">Next</button>
     </div>
     <router-link id="router-link" to="/contactform">
       <button id="feedback-button">Give us feedback!</button>
     </router-link>
   </div>
+  <div v-if="errorMessage" class="alert-overlay" @click="dismissAlert">
+    <div class="alert-box">
+      <p class="alert-message">{{ errorMessage }}</p>
+    </div>
+  </div>
 </template>
 
 <script>
-import * as math from 'mathjs'
-import { calculateResult, calculateResultJSON } from '../api/CalculatorHooks';
+import { calculateResult, getCalculationResultsByUserId } from '../api/CalculatorHooks';
+import { getUserByUsername, getUserIdByUsername } from '@/api/UserHooks';
+import { createCalculationRequest } from '@/utils/CreateCalculationRequest';
 
 export default {
+  created() {
+    const username = localStorage.getItem('username');
+    console.log('Logged in user:', username);
+
+    this.loadCalculationResults(0);
+  },
+
   data() {
     return {
       expression: '',
       lastOperator: '',
-      answers: []
+      calculationResults: [],
+      currentPage: 0,
+      pageSize: 10,
+      errorMessage: '',
     }
   },
   methods: {
-    pushAnswer() {
-      if (this.answers.length < 10) {
-        this.answers.push(this.expression)
-        this.expression = ''
-      } else {
-        this.answers.shift()
-        this.answers.push(this.expression)
-        this.expression = ''
+    logout() {
+      localStorage.removeItem('username');
+      this.$router.push({ path: '/' });
+    },
+
+    async pushAnswer() {
+      this.expression = '';
+      await this.loadCalculationResults(this.currentPage);
+    },
+
+    async loadCalculationResults(currentPage) {
+      try {
+        const username = localStorage.getItem('username');
+        const userId = await getUserIdByUsername(username);
+
+        const response = await getCalculationResultsByUserId(userId, currentPage, this.pageSize);
+        
+        this.calculationResults = response.content; 
+        
+        console.log('Calculation results:', this.calculationResults);
+        this.currentPage = response.number;
+        this.totalPages = response.totalPages;
+      } catch (error) {
+        console.error('Error loading calculation results:', error);
+      }
+    },
+
+    async prevPage() {
+      if (this.currentPage > 0) {
+        await this.loadCalculationResults(this.currentPage - 1);
+      }
+    },
+
+    async nextPage() {
+      if (this.currentPage < this.totalPages - 1) {
+        await this.loadCalculationResults(this.currentPage + 1);
+      }
+    },
+
+    async calculateAndSaveResult(equation) {
+      try {
+        const username = localStorage.getItem('username');
+        const user = await getUserByUsername(username);
+        const calculationRequest = createCalculationRequest(equation, user);
+
+        const result = await calculateResult(calculationRequest);
+        console.log('Calculation result:', result);
+
+        await this.pushAnswer();
+        
+      } catch (error) {
+        console.error('Error calculating result:', error);
+        if (error.response && error.response.status === 400) {
+          this.errorMessage = 'Input a valid equation';
+        } else {
+          this.errorMessage = 'An error occurred. Please try again later.';
+        }
       }
     },
     async handleButtonClick(value) {
+
       if (value === 'C') {
         this.expression = ''
         return
@@ -90,19 +160,17 @@ export default {
         try {
           console.log(this.expression.toString().slice(-2))
           if (this.expression.includes('/0')) {
-            this.expression = 'undefined'
-            pushAnswer()
+            this.expression = ''
+            this.calculateAndSaveResult(this.expression)
           } else {
-          const result = await calculateResult(this.expression);
+          const result = this.calculateAndSaveResult(this.expression);
           console.log('Result:', result);
-          const resultJSON = await calculateResultJSON(this.expression);
-          console.log('Result JSON:', resultJSON);
           this.expression = this.expression + ' = ' + result;
           this.pushAnswer();
           }
         } catch (error) {
           console.error('Error calculating result:', error);
-          this.expression = 'undefined';
+          this.expression = '';
           this.pushAnswer();
           this.expression = '';
         }} else {
@@ -138,13 +206,12 @@ export default {
       } else {
         return
       }
-    }
+    },
+
+    dismissAlert() {
+      this.errorMessage = '';
+    },
   },
-  computed: {
-    reversedAnswers() {
-      return this.answers.slice().reverse()
-    }
-  }
 }
 </script>
 
@@ -215,9 +282,11 @@ export default {
 }
 
 #feedback-button {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
   width: 240px;
-  margin: 20px auto;
-  padding: 10px;
+  padding: 8px 16px;
   border: 2px solid #000;
   border-radius: 5px;
   background-color: #4caf50;
@@ -229,4 +298,49 @@ export default {
 #feedback-button:hover {
   background-color: #3e8e41;
 }
+
+.logout-button {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 8px 16px;
+  background-color: #cccccc;
+  border: 2px solid #000;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+  font-size: 1.2rem;
+}
+
+.logout-button:hover {
+  background-color: #b3b3b3;
+}
+
+.alert-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.alert-box {
+  background-color: #ff0000;
+  padding: 30px;
+  border-radius: 5px;
+  border: 2px solid #000;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.alert-message {
+  font-size: 32px;
+  color: #fff;
+  text-align: center;
+}
+
 </style>

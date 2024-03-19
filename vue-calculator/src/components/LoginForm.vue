@@ -1,45 +1,80 @@
 <template>
-    <div class="login-container">
-        <h1 class="login-title">Login</h1>
-        <form @submit.prevent="login" class="login-form">
-            <div class="form-group">
-                <label for="username" class="form-label">Username:</label>
-                <input type="text" id="username" v-model="username" class="form-input">
-            </div>
-            <div class="form-group">
-                <label for="password" class="form-label">Password:</label>
-                <input type="password" id="password" v-model="password" class="form-input">
-            </div>
-            <button type="submit" class="login-button">Login</button>
-        </form>
-        <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
-    </div>
+  <div class="login-container">
+      <h1 class="login-title">Login</h1>
+      <form @submit.prevent="handleSubmit" class="login-form">
+          <div class="form-group">
+              <label for="username" class="form-label">Username:</label>
+              <input type="text" id="username" v-model="username" class="form-input">
+          </div>
+          <div class="form-group">
+              <label for="password" class="form-label">Password:</label>
+              <input type="password" id="password" v-model="password" class="form-input">
+          </div>
+          <button type="submit" class="login-button">Login</button>
+      </form>
+      <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+  </div>
 </template>
 
 <script>
+
+import { checkUsername, login, register, getUserByUsername } from '../api/UserHooks';
+
 export default {
-    data() {
-        return {
-            username: '',
-            password: '',
-            errorMessage: ''
-        }
-    },
-    methods: {
-        login() {
-            // In a real application, you would send the username and password to a server for validation
-            // For the sake of this example, let's assume the username is "admin" and password is "password"
-            if (this.username === 'admin' && this.password === 'password') {
-                // Successful login
-                alert('Login successful');
-                // You can redirect the user to another page here
-            } else {
-                // Failed login
-                this.errorMessage = 'Invalid username or password';
-            }
-        }
+  data() {
+    return {
+      username: '',
+      password: '',
+      errorMessage: ''
     }
+  },
+  methods: {
+    async handleSubmit() {
+      try {
+        const response = await checkUsername(this.username);
+        if (response === 'Username is available') {
+          await this.register();
+        } else {
+          await this.login();
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        this.errorMessage = 'An error occurred while processing your request';
+      }
+    },
+    async login() {
+      const user = {
+        username: this.username,
+        password: this.password
+      };
+
+      try {
+        const response = await login(user);
+        alert('Login successful');
+        this.$router.push({ path: '/calculator' });
+        localStorage.setItem('username', this.username);
+      } catch (error) {
+        console.error('Error:', error);
+        this.errorMessage = 'Invalid username or password';
+      }
+    },
+    async register() {
+      const user = {
+        username: this.username,
+        password: this.password
+      };
+
+      try {
+        const response = await register(user);
+        alert('Registration successful');
+      } catch (error) {
+        console.error('Error:', error);
+        this.errorMessage = 'An error occurred while processing your request';
+      }
+    }
+  }
 }
+
 </script>
 
 <style scoped>
