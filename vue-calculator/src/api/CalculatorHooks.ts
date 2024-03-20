@@ -1,12 +1,5 @@
-import axios from 'axios';
+import api from '@/api/axiosConfig';
 import type { CalculationRequest } from '@/types/CalculationRequest';
-
-const baseURL = 'http://localhost:8080';  // Adjust this according to your backend API base URL
-
-const api = axios.create({
-  baseURL: baseURL,
-  timeout: 5000,  // Adjust timeout as needed
-});
 
 export const calculateResult = (calculationRequest: CalculationRequest) => {
   console.log(calculationRequest.equation);

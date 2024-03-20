@@ -30,48 +30,27 @@ export default {
   },
   methods: {
     async handleSubmit() {
-      try {
-        const response = await checkUsername(this.username);
-        if (response === 'Username is available') {
-          await this.register();
-        } else {
-          await this.login();
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        this.errorMessage = 'An error occurred while processing your request';
-      }
-    },
-    async login() {
+    try {
       const user = {
         username: this.username,
         password: this.password
       };
 
-      try {
-        const response = await login(user);
+      const loginResponse = await login(user);
+
+      if (loginResponse.success) {
         alert('Login successful');
         this.$router.push({ path: '/calculator' });
         localStorage.setItem('username', this.username);
-      } catch (error) {
-        console.error('Error:', error);
-        this.errorMessage = 'Invalid username or password';
+      } else {
+        // If login failed, show error message
+        this.errorMessage = loginResponse.error ? 'Invalid username or password' : 'An error occurred while processing your request';
       }
-    },
-    async register() {
-      const user = {
-        username: this.username,
-        password: this.password
-      };
-
-      try {
-        const response = await register(user);
-        alert('Registration successful');
-      } catch (error) {
-        console.error('Error:', error);
-        this.errorMessage = 'An error occurred while processing your request';
-      }
+    } catch (error) {
+      console.error('Error:', error);
+      this.errorMessage = 'An error occurred while processing your request';
     }
+  },
   }
 }
 

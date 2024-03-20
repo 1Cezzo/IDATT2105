@@ -24,14 +24,4 @@ public class CalculatorController {
         LOGGER.info("Result: " + result);
         return ResponseEntity.ok().body(Double.toString(result));
     }
-
-    @PostMapping("/calculateJSON")
-    public ResponseEntity<CalculationResult> calculateJSON(@RequestBody String equation) {
-        LOGGER.info("Handling request to calculate: " + equation);
-        System.out.println(equation);
-        result = calculationService.calculate(equation);
-        CalculationResult calculationResult = new CalculationResult(equation, result);
-        LOGGER.info("Result: " + result);
-        return ResponseEntity.ok().body(calculationResult);
-    }
 }

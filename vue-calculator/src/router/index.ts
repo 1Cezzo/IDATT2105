@@ -10,7 +10,9 @@ const routes = [
   },
   {
     path: '/calculator',
-    component: Calculator
+    name: 'Calculator',
+    component: Calculator,
+    meta: { requiresAuth: true }
   },
   {
     path: '/contactform',

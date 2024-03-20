@@ -77,6 +77,7 @@ export default {
 
     logout() {
       localStorage.removeItem('username');
+      sessionStorage.removeItem('token');
       this.$router.push({ path: '/' });
     },
 

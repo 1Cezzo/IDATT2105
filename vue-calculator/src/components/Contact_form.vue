@@ -1,6 +1,6 @@
 <template>
   <div>
-    <router-link id="router-link" to="/">
+    <router-link id="router-link" to="/calculator">
       <button id="home-button">Home</button>
     </router-link>
 

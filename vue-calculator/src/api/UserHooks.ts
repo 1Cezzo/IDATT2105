@@ -1,38 +1,36 @@
-import axios from 'axios';
-
-const baseURL = 'http://localhost:8080';  // Adjust this according to your backend API base URL
-
-const api = axios.create({
-  baseURL: baseURL,
-  timeout: 5000,  // Adjust timeout as needed
-});
+import api from '@/api/axiosConfig';
 
 export const checkUsername = (username) => {
   console.log(username);
   return api.get(`/checkUsername?username=${username}`)
-    .then(response => {
-      return response.data;
-    })
+    .then(response => response.data)
     .catch(error => {
       throw error;
     });
 };
 
-export const login = (user) => {
-  return api.post('/login', user)
-    .then(response => {
-      return response.data;
-    })
-    .catch(error => {
-      throw error;
-    });
+export const login = async (user) => {
+  try {
+    const response = await api.post('/token', user);
+    const token = response.data;
+
+    sessionStorage.setItem('token', token);
+
+    return {
+      success: true,
+      data: token
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error
+    };
+  }
 };
 
 export const register = (user) => {
-  return api.post('/register', user)
-    .then(response => {
-      return response.data;
-    })
+  return api.post('/register/user', user)
+    .then(response => response.data)
     .catch(error => {
       throw error;
     });
@@ -40,9 +38,7 @@ export const register = (user) => {
 
 export const getUserByUsername = (username) => { 
   return api.get(`/user?username=${username}`)
-    .then(response => {
-      return response.data;
-    })
+    .then(response => response.data)
     .catch(error => {
       throw error;
     });
@@ -50,9 +46,7 @@ export const getUserByUsername = (username) => {
 
 export const getUserIdByUsername = (username) => {
   return api.get(`/userId?username=${username}`)
-    .then(response => {
-      return response.data;
-    })
+    .then(response => response.data)
     .catch(error => {
       throw error;
     });
